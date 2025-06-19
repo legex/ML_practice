@@ -6,7 +6,7 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix, f1_score
 from sklearn.model_selection import GridSearchCV
-from datapreprocessing import Dataprocessing
+from ML_practice.utils.datapreprocessing import Dataprocessing
 
 df = pd.read_csv("personality_datasert.csv")
 dp = Dataprocessing(df,target_col='Personality')

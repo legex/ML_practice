@@ -2,7 +2,7 @@ import pandas as pd
 from sklearn.linear_model import Ridge,Lasso,LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 from sklearn.model_selection import GridSearchCV
-from datapreprocessing import Dataprocessing
+from ML_practice.utils.datapreprocessing import Dataprocessing
 
 df = pd.read_csv("student_habits_performance.csv")
 dp = Dataprocessing(df,target_col='exam_score')

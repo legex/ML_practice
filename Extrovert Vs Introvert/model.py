@@ -1,3 +1,4 @@
+
 import pandas as pd
 from sklearn.linear_model import RidgeClassifier, SGDClassifier
 from sklearn.tree import DecisionTreeClassifier
@@ -6,9 +7,9 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix, f1_score
 from sklearn.model_selection import GridSearchCV
-from ML_practice.utils.datapreprocessing import Dataprocessing
+from utils.datapreprocessing import Dataprocessing
 
-df = pd.read_csv("personality_datasert.csv")
+df = pd.read_csv("ML_practice\Extrovert Vs Introvert\personality_datasert.csv")
 dp = Dataprocessing(df,target_col='Personality')
 X_train,X_test,y_train,y_test = dp.split()
 

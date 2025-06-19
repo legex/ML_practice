@@ -5,11 +5,6 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.impute import SimpleImputer
 
-
-df = pd.read_csv("student_habits_performance.csv")
-categorical_cols = df.select_dtypes(include='object').columns.tolist()
-numeric_cols = df.select_dtypes(exclude='object').columns.tolist()
-
 class Dataprocessing:
     """
     Class defined to handle data preprocessing

@@ -1,1 +1,1 @@
-from .datapreprocessing import Dataprocessing
+from .datapreprocessing import DataProcessing

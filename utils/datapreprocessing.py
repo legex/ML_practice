@@ -1,89 +1,173 @@
+"""
+Module for data preprocessing tasks including:
+- Handling missing values
+- Categorical encoding (label and one-hot)
+- Target encoding
+- Scaling features
+"""
+import os
 from random import randint
-import  pandas as pd
+from dataclasses import dataclass, field
+import joblib
+import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.preprocessing import (
+    LabelEncoder,
+    OneHotEncoder,
+    StandardScaler
+)
 from sklearn.impute import SimpleImputer
 
-class Dataprocessing:
+
+class DataProcessing:
     """
-    Class defined to handle data preprocessing
-    @handle_missing: to impute missing values
-    @handle_categorical: Encode categorical columns
+    Handles preprocessing: 
+    missing value imputation, categorical encoding, target encoding, and scaling.
     """
-    def __init__(self, dataframe, target_col):
-        self.df = dataframe
-        self.target_col = target_col
-        self.imputed_col_cat = []
-        self.imputed_col_num = []
-        self.all_cols = list(self.df.columns)
-        self.le_encode = LabelEncoder()
-        self.oe_encode = OneHotEncoder(handle_unknown='ignore')
+
+    @dataclass
+    class _Config:
+        target_col: str
+        encoder_dir: str = "encoders"
+        is_inference: bool = False
+        random_int: int = field(default_factory=lambda: randint(15, 50))
+
+        def target_encoder_path(self):
+            """
+            Returns the path for the target encoder.
+            """
+            return os.path.join(self.encoder_dir, f"label_{self.target_col}.pkl")
+
+        def ensure_encoder_dir(self):
+            """
+            Ensures the encoder directory exists.
+            """
+            os.makedirs(self.encoder_dir, exist_ok=True)
+
+    def __init__(self, dataframe, target_col, encoder_dir='encoders', is_inference=False):
+        self.df = dataframe.copy()
+        self.config = self._Config(target_col, encoder_dir, is_inference)
+        self.config.ensure_encoder_dir()
+
+        self.target_col = self.config.target_col
         self.low_cardinality = []
         self.high_cardinality = []
-        self.randomint = randint(0, 50)
+        self.scaler = StandardScaler()
+        self.target_encoder = LabelEncoder()
+
+        if self.config.is_inference and self.target_col in self.df.columns:
+            self.df.drop(columns=[self.target_col], inplace=True)
+
+    def _load_encoder(self, encoder_type, col):
+        """
+        Loads a pre-trained encoder from the specified directory.
+        Args:
+            encoder_type (str): Type of encoder ('label' or 'onehot').
+            col (str): Column name for which the encoder is saved.
+        Returns:
+            Loaded encoder object.
+        """
+        path = os.path.join(self.config.encoder_dir, f"{encoder_type}_{col}.pkl")
+        return joblib.load(path)
+
+    def _save_encoder(self, encoder, encoder_type, col):
+        """ Saves the encoder to the specified directory.
+        Args:
+            encoder: Encoder object to save.
+            encoder_type (str): Type of encoder ('label' or 'onehot').
+            col (str): Column name for which the encoder is saved.
+        returns:
+            None
+        """
+        path = os.path.join(self.config.encoder_dir, f"{encoder_type}_{col}.pkl")
+        joblib.dump(encoder, path)
 
     def handle_missing(self):
+        """ 
+        Imputes missing values in the DataFrame.
+        Uses median for numerical columns and most frequent for categorical columns.
         """
-        Imputes categorical columns with most_frequent
-        And numerical columns with median strategy
-        """
-        imputed_col_cat = []
-        imputed_col_num = []
-        for col in self.all_cols:
+        for col in self.df.columns:
             if self.df[col].isna().sum() > 0:
-                if self.df[col].dtype == 'object':
-                    simimpute = SimpleImputer(strategy="most_frequent")
-                    self.df[col] = simimpute.fit_transform(self.df[[col]]).ravel()
-                    imputed_col_cat.append(col)
-                else:
-                    simimpute = SimpleImputer(strategy="median")
-                    self.df[col] = simimpute.fit_transform(self.df[[col]]).ravel()
-                    imputed_col_num.append(col)
-            else:
-                pass
+                strategy = "most_frequent" if self.df[col].dtype == 'object' else "median"
+                imputer = SimpleImputer(strategy=strategy)
+                self.df[col] = imputer.fit_transform(self.df[[col]]).ravel()
         return self.df
 
     def handle_categorical(self):
-        """
-        Encode columns
-        Low cardinality with LabelEncoder
-        High cardinality with OneHotEncoder
+        """ 
+        Handles categorical encoding for the DataFrame.
+        Encodes low cardinality columns with Label Encoding,
+        and high cardinality columns with One-Hot Encoding.
+        Returns:
+        DataFrame with encoded categorical features.
         """
         self.df = self.handle_missing()
-        for col in self.all_cols:
+        all_cols = list(self.df.columns)
+
+        for col in all_cols:
+            if col == self.target_col:
+                continue
+
             if self.df[col].dtype == 'object':
                 if self.df[col].nunique() <= 3:
-                    self.df[col] = self.le_encode.fit_transform(self.df[col].astype(str))
                     self.low_cardinality.append(col)
+                    if self.config.is_inference:
+                        le = self._load_encoder('label', col)
+                        self.df[col] = le.transform(self.df[col].astype(str))
+                    else:
+                        le = LabelEncoder()
+                        self.df[col] = le.fit_transform(self.df[col].astype(str))
+                        self._save_encoder(le, 'label', col)
                 else:
-                    # OneHotEncoder requires 2D input and returns array, so handle properly
-                    encoded = self.oe_encode.fit_transform(self.df[[col]].astype(str))  # 2D input
+                    self.high_cardinality.append(col)
+                    if self.config.is_inference:
+                        oe = self._load_encoder('onehot', col)
+                        encoded = oe.transform(self.df[[col]].astype(str))
+                        categories = oe.categories_[0]
+                    else:
+                        oe = OneHotEncoder(handle_unknown='ignore')
+                        encoded = oe.fit_transform(self.df[[col]].astype(str))
+                        self._save_encoder(oe, 'onehot', col)
+                        categories = oe.categories_[0]
+
                     encoded_df = pd.DataFrame(
-                        encoded.toarray(),  # convert sparse matrix to dense
-                        columns=[f"{col}_{cat}" for cat in self.oe_encode.categories_[0]],
+                        encoded,
+                        columns=[f"{col}_{cat}" for cat in categories],
                         index=self.df.index
                     )
-                    # Drop original column and add new one-hot columns
                     self.df.drop(columns=[col], inplace=True)
                     self.df = pd.concat([self.df, encoded_df], axis=1)
-                    self.high_cardinality.append(col)
-            elif self.df[col].dtype =='int64' or 'float64':
-                pass
-            else:
-                print(self.df[col])
-                raise ValueError(f"Column '{col}' has unsupported dtype: {self.df[col].dtype}")
+
         return self.df
 
     def split(self):
         """
-        Split dataset into Train and Test
+        Splits the data into training and testing sets, handling categorical encoding and scaling.
+        Returns:
+            If inference: Scaled features.
+            If training: Tuple of (X_train, X_test, y_train, y_test).
         """
         self.df = self.handle_categorical()
-        x_final = self.df.drop(self.target_col, axis = 1)
-        target_y = self.df[self.target_col]
-        scaler_sc = StandardScaler()
-        x_scaled = scaler_sc.fit_transform(x_final)
-        x_train,x_test,y_train,y_test = train_test_split(x_scaled,target_y,test_size=0.2,
-                                                         random_state = self.randomint)
-        return x_train,x_test,y_train,y_test
+        x_data = self.df.drop(self.target_col, axis=1) if not self.config.is_inference else self.df
+
+        # Encode target
+        if not self.config.is_inference:
+            y = self.target_encoder.fit_transform(self.df[self.target_col].astype(str))
+            joblib.dump(self.target_encoder, self.config.target_encoder_path())
+        else:
+            y = None
+            if os.path.exists(self.config.target_encoder_path()):
+                self.target_encoder = joblib.load(self.config.target_encoder_path())
+
+        # Scale features
+        if self.config.is_inference:
+            self.scaler = joblib.load(os.path.join(self.config.encoder_dir, 'scaler.pkl'))
+            x_scaled = self.scaler.transform(x_data)
+            return x_scaled
+        else:
+            x_scaled = self.scaler.fit_transform(x_data)
+            joblib.dump(self.scaler, os.path.join(self.config.encoder_dir, 'scaler.pkl'))
+            return train_test_split(
+                x_scaled, y, test_size=0.2, random_state=self.config.random_int
+            )

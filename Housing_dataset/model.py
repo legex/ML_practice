@@ -6,9 +6,8 @@ from sklearn.model_selection import GridSearchCV
 from utils.datapreprocessing import DataProcessing
 from joblib import dump
 
-# Load the dataset
-# Ensure the path is correct for your environment
-df = pd.read_csv("ML_practice\Housing_dataset\housing_price_dataset.csv")
+
+df = pd.read_csv(r"ML_practice\Housing_dataset\housing_price_dataset.csv")
 dp = DataProcessing(df,target_col='Price')
 X_train,X_test,y_train,y_test = dp.split()
 
@@ -16,7 +15,6 @@ models = {
     "Linear": {
         "model": LinearRegression(),
         "params": {
-            # LinearRegression has no 'alpha'; empty or remove this if no hyperparameters
             "fit_intercept": [True, False]
         }
     },
@@ -35,7 +33,7 @@ models = {
 }
 
 best_models = {}
-best_score = float("-inf")   # R² can be negative, so start with -∞
+best_score = float("-inf")
 best_model_name = ""
 best_model_obj = None
 
@@ -56,16 +54,15 @@ for name, mp in models.items():
 
     best_models[name] = grid.best_estimator_
 
-    # Track the overall best model based on test R²
     if r2 > best_score:
         best_score = r2
         best_model_name = name
         best_model_obj = grid.best_estimator_
         print(f"New best model found: {best_model_name} with R2 Score: {best_score:.4f}")
-# Save the best model
+
 print(f"\nBest overall regression model: {best_model_name} with R2 score: {best_score:.4f}")
 save_dir = os.getcwd()
 
-# Save model
+
 model_path = os.path.join(f"{save_dir}\ML_practice\Housing_dataset", f"{best_model_name}_best_regressor.joblib")
 dump(best_model_obj, model_path)

@@ -1,6 +1,5 @@
 import os
 import mlflow
-from urllib.request import pathname2url
 from mlflow.models import infer_signature
 from xgboost import XGBClassifier
 from sklearn.metrics import accuracy_score
@@ -30,8 +29,6 @@ best_models = grid.best_estimator_
 best_params = grid.best_params_
 
 artifact_path = os.path.abspath("mlruns")
-#tracking_uri = "file://" + pathname2url(artifact_path)
-
 mlflow.set_tracking_uri("http://127.0.0.1:5000")
 mlflow.set_experiment("Extrovert_Vs_Introvert")
 

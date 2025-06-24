@@ -1,16 +1,14 @@
 import os
 import mlflow
-from urllib.request import pathname2url
 from mlflow.models import infer_signature
 import mlflow.sklearn
 from sklearn.linear_model import Lasso
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import GridSearchCV
-from imblearn.over_sampling import SMOTE
 from utils.datapreprocessing import DataProcessing
 import pandas as pd
 
-df = pd.read_csv("ML_practice\Student_study\student_habits_performance.csv")
+df = pd.read_csv(r"ML_practice\Student_study\student_habits_performance.csv")
 dp = DataProcessing(df, target_col='exam_score')
 X_train, X_test, y_train, y_test = dp.split()
 

@@ -7,7 +7,7 @@ from utils.datapreprocessing import DataProcessing
 from joblib import dump
 
 
-df = pd.read_csv("ML_practice\Student_study\student_habits_performance.csv")
+df = pd.read_csv(r"ML_practice\Student_study\student_habits_performance.csv")
 dp = DataProcessing(df,target_col='exam_score')
 X_train,X_test,y_train,y_test = dp.split()
 
@@ -55,16 +55,14 @@ for name, mp in models.items():
 
     best_models[name] = grid.best_estimator_
 
-    # Track the overall best model based on test R²
     if r2 > best_score:
         best_score = r2
         best_model_name = name
         best_model_obj = grid.best_estimator_
         print(f"New best model found: {best_model_name} with R2 Score: {best_score:.4f}")
-# Save the best model
+
 print(f"\nBest overall regression model: {best_model_name} with R2 score: {best_score:.4f}")
 save_dir = os.getcwd()
 
-# Save model
 model_path = os.path.join(f"{save_dir}\ML_practice\Student_Study", f"{best_model_name}_best_regressor.joblib")
 dump(best_model_obj, model_path)

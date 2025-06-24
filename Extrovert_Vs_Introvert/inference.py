@@ -7,5 +7,5 @@ data = {
 }
 headers = {'Content-Type': 'application/json'}
 
-response = requests.post(url, data=json.dumps(data), headers=headers)
+response = requests.post(url, data=json.dumps(data), headers=headers, timeout=10)
 print(response.json())

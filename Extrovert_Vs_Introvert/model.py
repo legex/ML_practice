@@ -15,20 +15,20 @@ from utils.datapreprocessing import DataProcessing
 from joblib import dump
 from imblearn.over_sampling import SMOTE
 
-df = pd.read_csv("ML_practice\Extrovert_Vs_Introvert\personality_datasert.csv")
+df = pd.read_csv(r"ML_practice\Extrovert_Vs_Introvert\personality_datasert.csv")
 dp = DataProcessing(df,target_col='Personality')
 X_train,X_test,y_train,y_test = dp.split()
 sm = SMOTE(random_state=42)
 X_res, y_res = sm.fit_resample(X_train, y_train)
 models = {
-    # "SGD": {
-    #     "model": SGDClassifier(),
-    #     "params": {
-    #         "alpha": [0.1, 0.5, 0.004, 0.001, 0.005, 0.0006, 0.002],
-    #         "loss": ['hinge', 'modified_huber', 'log_loss'],
-    #         "max_iter": [300, 500, 800, 1000, 1500]
-    #     }
-    # },
+    "SGD": {
+        "model": SGDClassifier(),
+        "params": {
+            "alpha": [0.1, 0.5, 0.004, 0.001, 0.005, 0.0006, 0.002],
+            "loss": ['hinge', 'modified_huber', 'log_loss'],
+            "max_iter": [300, 500, 800, 1000, 1500]
+        }
+    },
     "Ridge": {
         "model": RidgeClassifier(),
         "params": {
@@ -37,14 +37,14 @@ models = {
             "max_iter": [1, 3, 5, 7, 10, 100, 200, 250]
         }
     },
-    # "KNN": {
-    #     "model": KNeighborsClassifier(),
-    #     "params": {
-    #         "n_neighbors": [5, 10, 20, 15, 30, 35, 50, 40, 45],
-    #         "algorithm": ["ball_tree", "kd_tree", "brute"],
-    #         "leaf_size": [55, 10, 20, 15, 30, 35, 50, 40, 45]
-    #     }
-    # },
+    "KNN": {
+        "model": KNeighborsClassifier(),
+        "params": {
+            "n_neighbors": [5, 10, 20, 15, 30, 35, 50, 40, 45],
+            "algorithm": ["ball_tree", "kd_tree", "brute"],
+            "leaf_size": [55, 10, 20, 15, 30, 35, 50, 40, 45]
+        }
+    },
     "XGBoost": {
         "model": XGBClassifier(alpha=0.1, verbosity=1),
         "params": {

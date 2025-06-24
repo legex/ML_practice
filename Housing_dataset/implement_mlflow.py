@@ -1,6 +1,5 @@
 import os
 import mlflow
-from urllib.request import pathname2url
 from mlflow.models import infer_signature
 import mlflow.sklearn
 from sklearn.linear_model import Lasso
@@ -10,7 +9,7 @@ from imblearn.over_sampling import SMOTE
 from utils.datapreprocessing import DataProcessing
 import pandas as pd
 
-df = pd.read_csv("ML_practice\Housing_dataset\housing_price_dataset.csv")
+df = pd.read_csv(r"ML_practice\Housing_dataset\housing_price_dataset.csv")
 dp = DataProcessing(df, target_col='Price')
 X_train, X_test, y_train, y_test = dp.split()
 

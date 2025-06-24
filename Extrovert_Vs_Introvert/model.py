@@ -3,16 +3,23 @@ import pandas as pd
 from sklearn.linear_model import RidgeClassifier, SGDClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
-from xgboost import XGBClassifier
-from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix, f1_score
+from sklearn.metrics import (accuracy_score,
+                             precision_score,
+                             recall_score,
+                             confusion_matrix,
+                             f1_score
+)
 from sklearn.model_selection import GridSearchCV
+from xgboost import XGBClassifier
 from utils.datapreprocessing import DataProcessing
 from joblib import dump
+from imblearn.over_sampling import SMOTE
 
 df = pd.read_csv("ML_practice\Extrovert_Vs_Introvert\personality_datasert.csv")
 dp = DataProcessing(df,target_col='Personality')
 X_train,X_test,y_train,y_test = dp.split()
-
+sm = SMOTE(random_state=42)
+X_res, y_res = sm.fit_resample(X_train, y_train)
 models = {
     # "SGD": {
     #     "model": SGDClassifier(),
@@ -68,7 +75,7 @@ best_model_obj = None
 for name, mp in models.items():
     print(f"\nRunning GridSearchCV for: {name}")
     grid = GridSearchCV(mp["model"], mp["params"], cv=5, scoring='accuracy', verbose=1)
-    grid.fit(X_train, y_train)
+    grid.fit(X_res, y_res)
     y_pred = grid.predict(X_test)
     accuracy = accuracy_score(y_test, y_pred)
     print(f"Best Params: {grid.best_params_}")

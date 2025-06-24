@@ -131,14 +131,14 @@ class DataProcessing:
                         self._save_encoder(oe, 'onehot', col)
                         categories = oe.categories_[0]
 
+                    encoded_array = encoded.toarray() if hasattr(encoded, 'toarray') else encoded
                     encoded_df = pd.DataFrame(
-                        encoded,
+                        encoded_array,
                         columns=[f"{col}_{cat}" for cat in categories],
                         index=self.df.index
                     )
                     self.df.drop(columns=[col], inplace=True)
                     self.df = pd.concat([self.df, encoded_df], axis=1)
-
         return self.df
 
     def split(self):

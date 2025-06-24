@@ -3,13 +3,13 @@ import pandas as pd
 from sklearn.linear_model import Ridge,Lasso,LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 from sklearn.model_selection import GridSearchCV
-from utils.datapreprocessing import Dataprocessing
+from utils.datapreprocessing import DataProcessing
 from joblib import dump
 
 # Load the dataset
 # Ensure the path is correct for your environment
 df = pd.read_csv("ML_practice\Housing_dataset\housing_price_dataset.csv")
-dp = Dataprocessing(df,target_col='Price')
+dp = DataProcessing(df,target_col='Price')
 X_train,X_test,y_train,y_test = dp.split()
 
 models = {
